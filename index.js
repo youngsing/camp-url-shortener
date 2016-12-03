@@ -5,6 +5,7 @@ var express = require('express');
 var app = express();
 
 var mongoPath = process.env.MONGOLAB_URI;
+console.log(process.env);
 
 var outputRoot = '';
 var collectionName = 'camp-short-url';
