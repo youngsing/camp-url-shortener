@@ -97,6 +97,7 @@ app.get('/new/:url*', function(req, res) {
 
 	} else {
 		if (validURL(url)) {
+			console.log(req.secure);
 			outputRoot = (req.secure ? 'https://' : 'http://') + req.headers.host + '/';
 			parseIntputURL(url, res);
 		} else {
