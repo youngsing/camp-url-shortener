@@ -35,7 +35,6 @@ function parseIntputURL(url, res) {
 
 			if (docs.length === 0) {
 				var codePath = randomPath();
-				console.log('codePath', codePath);
 				clt.insertOne({
 					hash: hashedURL,
 					origin: url,
