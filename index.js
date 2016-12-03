@@ -1,9 +1,11 @@
 var cool = require('cool-ascii-faces');
-var express = require('express');
 var crypto = require('crypto');
 var mongo = require('mongodb').MongoClient;
+var express = require('express');
 
 var app = express();
+
+var mongoPath = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/campdb';
 
 var outputRoot = '';
 var collectionName = 'camp-short-url';
@@ -12,8 +14,56 @@ function parseIntputURL(url, res) {
 
 	var hashedURL = crypto.createHash('sha1').update(url).digest('hex');
 
-	console.log(hashedURL);
-	res.send(hashedURL);
+	mongo.connect(mongoPath, function(err, db) {
+
+		if (err) {
+			handleError(err, res);
+			return;
+		}
+
+		var clt = db.collection(collectionName);
+		clt.find({
+			hash: hashedURL
+		}, {
+			origin: 1,
+			output: 1,
+			_id: 1
+		}).toArray(function(err, docs) {
+			if (err) {
+				handleError(err, res);
+				return;
+			}
+
+			if (docs.length === 0) {
+				var codePath = randomPath();
+				clt.insertOne({
+					hash: hashedURL,
+					origin: url,
+					output: (outputRoot + codePath),
+				}, function(err) {
+					if (err) {
+						handleError(err, res);
+					} else {
+						var result = {
+							'original_url': url,
+							'short_url': (outputRoot + codePath)
+						}
+						res.json(result);
+						db.close();
+					}
+				});
+			} else {
+				var result = {
+					'original_url': url,
+					'short_url': docs[0].output
+				}
+				res.json(result);
+				db.close();
+			}
+
+		});
+	});
+
 }
 
 function handleNotFound(res) {
@@ -57,7 +107,29 @@ app.get('/new/:url*', function(req, res) {
 	}
 });
 
-app.get('/[0-9]+', function(req, res) {});
+app.get('/[0-9]+', function(req, res) {
+	mongo.connect(mongoPath, function(err, db) {
+		if (err) {
+			handleError(err, res);
+			return;
+		}
+
+		var input = req.headers.host + req.path;
+		var clt = db.collection(collectionName);
+		clt.find({
+			output: input
+		}, {
+			origin: 1
+		}).toArray(function(err, docs) {
+			if (err || docs.length === 0) {
+				handleNotFound(res);
+			} else {
+				res.redirect(docs[0].origin);
+			}
+		});
+
+	});
+});
 
 app.get('*', function(req, res) {
 	handleNotFound(res);
