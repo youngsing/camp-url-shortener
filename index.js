@@ -4,7 +4,8 @@ var mongo = require('mongodb').MongoClient;
 var express = require('express');
 var app = express();
 
-var mongoPath = process.env.MONGOLAB_URI;
+//var mongoPath = process.env.MONGOLAB_URI;
+var mongoPath = '';
 console.log(process.env);
 
 var outputRoot = '';
