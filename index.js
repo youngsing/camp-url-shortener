@@ -1,6 +1,7 @@
 var cool = require('cool-ascii-faces');
 var express = require('express');
 var crypto = require('crypto');
+var mongo = require('mongodb').MongoClient;
 
 var app = express();
 
