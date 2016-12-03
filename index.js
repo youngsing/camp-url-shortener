@@ -6,6 +6,7 @@ var express = require('express');
 var app = express();
 
 var mongoPath = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/campdb';
+console.log(mongoPath);
 
 var outputRoot = '';
 var collectionName = 'camp-short-url';
@@ -96,7 +97,7 @@ app.get('/new/:url*', function(req, res) {
 
 	} else {
 		if (validURL(url)) {
-			outputRoot = req.headers.host + '/';
+			outputRoot = (req.secure ? 'https://' : 'http://') + req.headers.host + '/';
 			parseIntputURL(url, res);
 		} else {
 			var result = {
@@ -113,8 +114,8 @@ app.get('/[0-9]+', function(req, res) {
 			handleError(err, res);
 			return;
 		}
-
-		var input = req.headers.host + req.path;
+		
+		var input = (req.secure ? "https://" : "http://") + req.headers.host + req.path;
 		var clt = db.collection(collectionName);
 		clt.find({
 			output: input
